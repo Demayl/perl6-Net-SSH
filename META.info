@@ -1,0 +1,21 @@
+{
+    "name"        : "Net::SSH",
+    "version"     : "0.0.1",
+    "description" : "SSH client with libssh",
+    "provides": {
+        "Net::SSH"              : "lib/Net/SSH.pm6",
+        "Net::SSH::Channel"     : "lib/Net/SSH/Channel.pm6",
+        "Net::SSH::Exceptions"  : "lib/Net/SSH/Exceptions.pm6",
+        "Net::SSH::LibSSH"      : "lib/Net/SSH/LibSSH.pm6",
+        "Net::SSH::Response"    : "lib/Net/SSH/Response.pm6"
+    },
+    "depends"     : [],
+    "authors" : [
+        "Denis Kanchev - demayl"
+    ],
+    "support" : {
+        "bugtracker" : "https://github.com/Demayl/perl6-Net-SSH/issues",
+        "source" : "git://github.com:Demayl/perl6-Net-SSH.git"
+    },
+    "source-url"  : "git://github.com/Demayl/perl6-Net-SSH.git"
+}
