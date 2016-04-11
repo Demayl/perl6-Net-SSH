@@ -23,10 +23,10 @@ $ssh.close();
 
 say now - INIT now ;
 
-CATCH {
-    when X::SSH { say "SSH failed" } # Every Exception is X::SSH
-    when X::SSH::Connect { say "Failed to connect::" ~ .message; .resume }
-    default { say "DEFAULT" }
+CATCH { # See Net::SSH::Exceptions
+    when X::SSH::Connect { say "Failed to connect: " ~ .message; .resume }
+    when X::SSH { say "SSH failed" } # Every Exception is X::SSH, so catch here all other Net::SSH related exceptions
+    default { say "DEFAULT" }        # Something else failed
 }
 ```
 
