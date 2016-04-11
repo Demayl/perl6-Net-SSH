@@ -4,7 +4,7 @@ use v6.c;
 
 use NativeCall;
 
-constant LIB = 'ssh'; # requires libssh-dev to be installed
+constant LIB = ('ssh', v4); # requires libssh-4 to be installed
 
 
 constant SSH_CRYPT  is export = 2;
