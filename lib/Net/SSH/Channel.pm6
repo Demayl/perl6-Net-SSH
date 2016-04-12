@@ -8,7 +8,7 @@ has Pointer $!channel;
 has Pointer $.sess;
 has Str $.host;
 
-subset BufferSize of Int where 32 < * < 1048576 ;
+subset BufferSize of Int where -> $i { $i > 0 && ($i +& ($i-1)) == 0 }  ; # Buffers can be only power of 2
 
 submethod BUILD( :$!sess, :$!host ){
 
@@ -43,10 +43,10 @@ method exec(Str $cmd) {
     return True;
 }
 
-method !read-sync( Buf :$STDOUT! is rw, Buf :$STDERR! is rw, Bool :$stderr = False, BufferSize :$buffer-size = 255 ) {
+method !read-sync( Buf :$STDOUT! is rw, Buf :$STDERR! is rw, Bool :$stderr = False, BufferSize :$buffer-size = 256 ) {
 
     my $buffer      = CArray[int8].new;
-    $buffer[$buffer-size]    = 0;
+    $buffer[$buffer-size-1]    = 0;
 
     my $rbytes = ssh_channel_read($!channel, $buffer, $buffer.elems, $stderr.Int);
 
@@ -68,7 +68,7 @@ method !read-sync( Buf :$STDOUT! is rw, Buf :$STDERR! is rw, Bool :$stderr = Fal
 }
 
 # Max 1MB buffer
-method read(BufferSize :$buffer-size = 255 ) {
+method read(BufferSize :$buffer-size = 256 ) {
     my Int $nbytes;
 
     my Buf $STDOUT .= new;
