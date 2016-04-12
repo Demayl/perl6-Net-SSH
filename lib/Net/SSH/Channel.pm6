@@ -43,7 +43,7 @@ method exec(Str $cmd) {
     return True;
 }
 
-method !read-sync( Buf :$STDOUT! is rw, Buf :$STDERR! is rw, Bool :$stderr = False, BufferSize :$buffer-size = 256 ) {
+method !read-sync( Buf :$STDOUT! is rw, Buf :$STDERR! is rw, Bool :$stderr = False, BufferSize :$buffer-size = 255 ) {
 
     my $buffer      = CArray[int8].new;
     $buffer[$buffer-size]    = 0;
@@ -68,7 +68,7 @@ method !read-sync( Buf :$STDOUT! is rw, Buf :$STDERR! is rw, Bool :$stderr = Fal
 }
 
 # Max 1MB buffer
-method read(BufferSize :$buffer-size = 256 ) {
+method read(BufferSize :$buffer-size = 255 ) {
     my Int $nbytes;
 
     my Buf $STDOUT .= new;
