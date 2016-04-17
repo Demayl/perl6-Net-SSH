@@ -16,7 +16,7 @@ has Str $.host is required;
 has Int $.port = 22;
 has Str $.user;
 has Int $.timeout;
-has Numeric $.connect-timeout is required where 0 < * < 120 ;
+has Numeric $.connect-timeout where 0 < * < 120 ;
 
 has Pointer $!sess;
 has Pointer $!channel;
