@@ -207,7 +207,9 @@ enum ssh_publickey_hash_type <
 sub ssh_new is native(LIB) returns OpaquePointer is export { ... }
 
 # LIBSSH_API int ssh_options_set(ssh_session session, enum ssh_options_e type, const void *value);
-sub ssh_options_set(OpaquePointer, ssh_options_e(int32), str is rw) is native(LIB) is symbol('ssh_options_set') returns int32 is export { ... } # 0 on success; < 0 on error
+sub ssh_options_set(OpaquePointer, ssh_options_e(int32), Str is rw ) is native(LIB) is symbol('ssh_options_set') returns int32 is export { ... } # 0 on success; < 0 on error
+#multi sub ssh_options_set(OpaquePointer, ssh_options_e(int32), int32 is rw ) is native(LIB) is symbol('ssh_options_set') returns int32 is export { ... } # 0 on success; < 0 on error
+
 #sub ssh_options_set_l(OpaquePointer, ssh_options_e(int32), long is rw) is native(LIB) is symbol('ssh_options_set') returns int32 is export { ... } # 0 on success; < 0 on error
 
 sub ssh_options_set2(Pointer $sess, Int $msg, $value ) is export {
@@ -237,6 +239,7 @@ sub ssh_channel_new(Pointer) is native(LIB) returns Pointer is export { ... }
 sub ssh_channel_open_session(Pointer) is native(LIB) returns int32 is export { ... }
 sub ssh_channel_request_exec(Pointer, Str) is native(LIB) returns int32 is export { ... }
 sub ssh_channel_read(Pointer, CArray[int8] is rw, uint32, uint32) is native(LIB) returns int32 is export { ... }
+sub ssh_channel_read_timeout(Pointer, CArray[int8] is rw, uint32, uint32,uint32) is native(LIB) returns int32 is export { ... }
 sub channel_read_buffer(Pointer, CArray[int8] is rw, uint32, uint32) is native(LIB) returns int32 is export { ... }
 sub ssh_channel_close(Pointer) is native(LIB) returns int32 is export { ... }
 sub ssh_channel_free(Pointer) is native(LIB) returns int32 is export { ... }

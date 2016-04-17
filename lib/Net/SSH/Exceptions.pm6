@@ -48,6 +48,12 @@ class X::SSH::Channel is X::SSH {
     }
 }
 
+class X::SSH::Disconnected is X::SSH {
+
+    method message(){
+        "Cannot handle disconnected session";
+    }
+}
 
 class X::SSH::Exec is X::SSH {
     has Str $.host is required;

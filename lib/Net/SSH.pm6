@@ -16,11 +16,13 @@ has Str $.host is required;
 has Int $.port = 22;
 has Str $.user;
 has Int $.timeout;
-has Numeric $.connect-timeout where 0 < * < 120;
+has Numeric $.connect-timeout is required where 0 < * < 120 ;
 
 has Pointer $!sess;
 has Pointer $!channel;
 has int32   $!rc = -1;
+has Str     $!last-error = '';
+has Bool    $!disconnected = False;
 
 #submethod BUILD(:$!host, :$!port=22, :$!user?, :$!timeout?) {
 #    say "Initialized";
@@ -37,15 +39,16 @@ method connect(Str $host?) {
     ssh_options_set($!sess, SSH_OPTIONS_HOST, $.host);
     ssh_options_set($!sess, SSH_OPTIONS_PORT_STR, $.port.Str);
     ssh_options_set($!sess, SSH_OPTIONS_USER, $.user) if $.user;
-    ssh_options_set($!sess, SSH_OPTIONS_TIMEOUT, my long $.timeout) if $.timeout;
-#    ssh_options_set($!sess, SSH_OPTIONS_LOG_VERBOSITY, SSH_LOG_PACKET.Str);
+    ssh_options_set($!sess, SSH_OPTIONS_TIMEOUT, $!connect-timeout.Str) if $!connect-timeout;
+    ssh_options_set($!sess, SSH_OPTIONS_LOG_VERBOSITY, SSH_LOG_PACKET.Str);
 
     # TODO SSH_OPTIONS_TIMEOUT is ignored in libssh, so timeout here. NOTE we cannot call free() untill done
     $!rc = ssh_connect($!sess);
 
     if $!rc != SSH_OK {
-        self!disconnect;
-        fail X::SSH::Connect.new( :$.host, :error(self!get_error) );
+
+        self!save_error();
+        fail X::SSH::Connect.new( :$.host, :error($!last-error) );
     }
 }
 
@@ -53,8 +56,9 @@ multi method login( Str :$user?, Str:D :$password ) returns Bool {
     $!rc = ssh_userauth_password($!sess,$user,$password);
 
     if $!rc != SSH_AUTH_SUCCESS {
+        self!save_error();
         self!disconnect;
-        note X::SSH::Auth.new( :$.host, :error(self!get_error), :type('user-pass') );
+        note X::SSH::Auth.new( :$.host, :error($!last-error), :type('user-pass') );
         return False;
     }
 
@@ -67,8 +71,9 @@ multi method login(Bool :$ssh_agent, Str :$user?, Str :$password?) returns Bool 
     $!rc =  ssh_userauth_publickey_auto($!sess,$user,$password);
 
     if $!rc != SSH_AUTH_SUCCESS {
+        self!save_error;
         self!disconnect;
-        note X::SSH::Auth.new( :$.host, :error(self!get_error), :type('public key') );
+        note X::SSH::Auth.new( :$.host, :error($!last-error), :type('public key') );
         return False;
     }
 
@@ -80,8 +85,9 @@ multi method login(Str :$user?) returns Bool {
     $!rc = ssh_userauth_none($!sess,$user);
 
     if $!rc != SSH_AUTH_SUCCESS {
+        self!save_error;
         self!disconnect;
-        note X::SSH::Auth.new( :$.host, :error(self!get_error), :type('password-less') );
+        note X::SSH::Auth.new( :$.host, :error($!last-error), :type('password-less') );
         return False;
     }
 
@@ -159,6 +165,8 @@ method !new_channel {
 }
 
 method !disconnect() {
+    $!disconnected = True;
+
     ssh_disconnect($!sess) if $!rc == 0;
     ssh_free($!sess);
 }
@@ -175,11 +183,14 @@ method close {
     self!disconnect;
 }
 
+method !save_error() {
+
+    $!last-error = self!get_error();
+}
 method !get_error() {
-#    my $bytes = nativecast( CArray[int8], ssh_get_error($!sess) ) ;
-#    say $bytes[0];
-    #my $buf = Buf.new( $bytes[0..($size*$nmemb-1)] );
-#    say $bytes;
+#    my $carr = nativecast( CArray[int8], ssh_get_error($!sess) ) ;
+#    return Buf.new( $carr.list ).decode('utf8');
+    fail X::SSH::Disconnected.new() if $!disconnected;
     return ssh_get_error($!sess);
 }
 
