@@ -39,8 +39,8 @@ method connect(Str $host?) {
     ssh_options_set($!sess, SSH_OPTIONS_HOST, $.host);
     ssh_options_set($!sess, SSH_OPTIONS_PORT_STR, $.port.Str);
     ssh_options_set($!sess, SSH_OPTIONS_USER, $.user) if $.user;
-    ssh_options_set($!sess, SSH_OPTIONS_TIMEOUT, $!connect-timeout.Str) if $!connect-timeout;
-    ssh_options_set($!sess, SSH_OPTIONS_LOG_VERBOSITY, SSH_LOG_PACKET.Str);
+#    ssh_options_set($!sess, SSH_OPTIONS_TIMEOUT, $!connect-timeout.Str) if $!connect-timeout;
+#    ssh_options_set($!sess, SSH_OPTIONS_LOG_VERBOSITY, SSH_LOG_PACKET.Str);
 
     # TODO SSH_OPTIONS_TIMEOUT is ignored in libssh, so timeout here. NOTE we cannot call free() untill done
     $!rc = ssh_connect($!sess);
