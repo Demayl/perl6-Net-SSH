@@ -17,6 +17,7 @@ has Int $.port = 22;
 has Str $.user;
 has Int $.timeout;
 has Numeric $.connect-timeout where 0 < * < 120 ;
+has Bool $.debug-packet = False;
 
 has Pointer $!sess;
 has Pointer $!channel;
@@ -40,7 +41,7 @@ method connect(Str $host?) {
     ssh_options_set($!sess, SSH_OPTIONS_PORT_STR, $.port.Str);
     ssh_options_set($!sess, SSH_OPTIONS_USER, $.user) if $.user;
 #    ssh_options_set($!sess, SSH_OPTIONS_TIMEOUT, $!connect-timeout.Str) if $!connect-timeout;
-#    ssh_options_set($!sess, SSH_OPTIONS_LOG_VERBOSITY, SSH_LOG_PACKET.Str);
+    ssh_options_set($!sess, SSH_OPTIONS_LOG_VERBOSITY, SSH_LOG_PACKET.Str) if $.debug-packet;
 
     # TODO SSH_OPTIONS_TIMEOUT is ignored in libssh, so timeout here. NOTE we cannot call free() untill done
     $!rc = ssh_connect($!sess);
