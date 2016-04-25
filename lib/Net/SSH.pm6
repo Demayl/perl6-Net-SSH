@@ -165,11 +165,23 @@ method !new_channel {
     return $!channel;
 }
 
-method !disconnect() {
+# Disconnect & free SSH session
+# @param Bool $ignore-disconnect = False : Suppress note about already disconnected session
+method !disconnect(Bool $ignore-disconnect = False) {
+
+    if $ignore-disconnect && $!disconnected {
+        return False;
+    } elsif $!disconnected { # Already disconnected - note about that
+        note X::SSH::Disconnected.new();
+        return Nil;
+    }
+
     $!disconnected = True;
 
     ssh_disconnect($!sess) if $!rc == 0;
     ssh_free($!sess);
+
+    return True;
 }
 
 method !close_channels( Pointer $channel = $!channel ) {
@@ -203,9 +215,9 @@ method !init_channel() {
 
 }
 
-# NOTE DESTROY is ignored ?
+# There is no "ref" counting ( as perl5 ), so it will be called only when reference is manualy deleted
 method DESTROY {
-    say "DESTROY module";
-    self!disconnect();
+    say "DESTROY Net::SSH"; # TODO REMOVE
+    self!disconnect(True);
 }
 
