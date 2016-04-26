@@ -23,7 +23,8 @@ has Pointer $!sess;
 has Pointer $!channel;
 has int32   $!rc = -1;
 has Str     $!last-error = '';
-has Bool    $!disconnected = False;
+has Bool    $!disconnected = False; # True when session closed ( disconnected from server )
+has Bool    $!blocked = False;      # Prevent second call on blocking operations
 
 #submethod BUILD(:$!host, :$!port=22, :$!user?, :$!timeout?) {
 #    say "Initialized";
@@ -106,14 +107,19 @@ multi method run( Str $cmd, Bool :$async where *.so ) {
 multi method run( Str $cmd ) returns Int {
     my $channel := Net::SSH::Channel.new( :$!sess, :$.host );
 
+    return -1 if !self!init_lock ;
+
     if $channel.exec( $cmd ) {
 
         my int32 $code = $channel.exitcode;
         $channel.close;
+        self!release_lock;
+
         return $code;
     }
 
     $channel.close;
+    self!release_lock;
 
     return -1;
 }
@@ -121,18 +127,24 @@ multi method run( Str $cmd ) returns Int {
 method exec( Str $cmd, Bool :$stderr is copy = False, Bool :$merge = False ){
     my $channel := Net::SSH::Channel.new( :$!sess, :$.host );
 
+    return -1 if !self!init_lock;
+
     if !$channel.exec( $cmd ) {
+        self!release_lock;
         return NULL;
     }
 
     my ( $STDOUT, $STDERR ) = $channel.read();
 
     if $STDOUT.defined.not {
+        self!release_lock;
         note X::SSH::Exec.new( :$.host, :$cmd, :error(self!get_error), :stage('read') );
         return Nil;
     }
 
     my int $exitcode = $channel.exitcode( );
+
+    self!release_lock;
 
     if so $merge {
         $STDOUT.append: $STDERR ;
@@ -213,6 +225,21 @@ method !get_error_code() returns int32 {
 
 method !init_channel() {
 
+}
+
+method !init_lock {
+
+    if $!blocked {
+        note X::SSH::Blocked.new();
+        return False;
+    }
+
+    $!blocked = True;
+    return True;
+}
+
+method !release_lock {
+    $!blocked = False;
 }
 
 # There is no "ref" counting ( as perl5 ), so it will be called only when reference is manualy deleted

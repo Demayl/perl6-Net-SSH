@@ -55,6 +55,13 @@ class X::SSH::Disconnected is X::SSH {
     }
 }
 
+class X::SSH::Blocked is X::SSH {
+
+    method message(){
+        "Blocked by another operation";
+    }
+}
+
 class X::SSH::Exec is X::SSH {
     has Str $.host is required;
     has Str $.cmd is required;
