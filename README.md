@@ -66,6 +66,7 @@ It cannot be used in Promises for now.
 ## TODO
 
 - [ ] Add SSH cert password option ( currently it can use only ssh-agent for certificates )
+- [ ] Add scp
 - [ ] Add async &exec + &run ( with option to stop them )
 - [ ] Make it safer when used in Threads/Promises
 - [ ] Add inline documentation
