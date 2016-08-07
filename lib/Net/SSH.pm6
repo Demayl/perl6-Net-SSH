@@ -243,7 +243,7 @@ method !release_lock {
 }
 
 # There is no "ref" counting ( as perl5 ), so it will be called only when reference is manualy deleted
-method DESTROY {
+submethod DESTROY {
     say "DESTROY Net::SSH"; # TODO REMOVE
     self!disconnect(True);
 }
