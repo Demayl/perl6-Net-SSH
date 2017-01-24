@@ -65,6 +65,7 @@ It cannot be used in Promises for now.
 
 ## TODO
 
+- [ ] Add Supply for every exec
 - [ ] Add SSH cert password option ( currently it can use only ssh-agent for certificates )
 - [ ] Add scp
 - [ ] Add async &exec + &run ( with option to stop them )
