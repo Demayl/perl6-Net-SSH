@@ -239,6 +239,7 @@ sub ssh_channel_new(Pointer) is native(LIB) returns Pointer is export { ... }
 sub ssh_channel_open_session(Pointer) is native(LIB) returns int32 is export { ... }
 sub ssh_channel_request_exec(Pointer, Str) is native(LIB) returns int32 is export { ... }
 sub ssh_channel_read(Pointer, CArray[int8] is rw, uint32, uint32) is native(LIB) returns int32 is export { ... }
+sub ssh_channel_read_nonblocking(Pointer, CArray[int8] is rw, uint32, uint32) is native(LIB) returns int32 is export { ... }
 sub ssh_channel_read_timeout(Pointer, CArray[int8] is rw, uint32, uint32,uint32) is native(LIB) returns int32 is export { ... }
 sub channel_read_buffer(Pointer, CArray[int8] is rw, uint32, uint32) is native(LIB) returns int32 is export { ... }
 sub ssh_channel_close(Pointer) is native(LIB) returns int32 is export { ... }
@@ -247,5 +248,9 @@ sub ssh_channel_send_eof(Pointer) is native(LIB) is export { ... }
 sub ssh_channel_get_exit_status(Pointer) is native(LIB) returns int32 is export { ... }
 sub ssh_channel_exit_status_callback( Pointer, Pointer, &cb (Pointer, Pointer, int32 is rw, CArray[int8]) ) is native(LIB) returns int32 is export { ... }
 
+
+sub ssh_channel_poll(Pointer, uint32) is native(LIB) returns int32 is export { ... } # Polls a channel for data to read, stderr is second argument
+sub ssh_channel_is_eof(Pointer) is native(LIB) returns int32 is export { ... } # Check if sended EOF
+sub ssh_channel_is_open(Pointer) is native(LIB) returns int32 is export { ... } # Check if channel is open
 
 

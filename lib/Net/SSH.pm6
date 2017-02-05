@@ -18,6 +18,8 @@ has Str $.user;
 has Int $.timeout;
 has Numeric $.connect-timeout where 0 < * < 120 ;
 has Bool $.debug-packet = False;
+has Bool $.debug = False;
+has Bool $.bin   = False; # Default it will convert to utf-8
 
 has Pointer $!sess;
 has Pointer $!channel;
@@ -57,6 +59,8 @@ method connect(Str $host?) {
 multi method login( Str :$user?, Str:D :$password ) returns Bool {
     $!rc = ssh_userauth_password($!sess,$user,$password);
 
+	say "[LOGIN] with user-password" if self.debug;
+
     if $!rc != SSH_AUTH_SUCCESS {
         self!save_error();
         self!disconnect;
@@ -72,6 +76,8 @@ multi method login( Str :$user?, Str:D :$password ) returns Bool {
 multi method login(Bool :$ssh_agent, Str :$user?, Str :$password?) returns Bool {
     $!rc =  ssh_userauth_publickey_auto($!sess,$user,$password);
 
+	say "[LOGIN] with ssh-agent" if self.debug;
+
     if $!rc != SSH_AUTH_SUCCESS {
         self!save_error;
         self!disconnect;
@@ -85,6 +91,8 @@ multi method login(Bool :$ssh_agent, Str :$user?, Str :$password?) returns Bool 
 # without password
 multi method login(Str :$user?) returns Bool {
     $!rc = ssh_userauth_none($!sess,$user);
+
+	say "[LOGIN] without password" if self.debug;
 
     if $!rc != SSH_AUTH_SUCCESS {
         self!save_error;
@@ -104,10 +112,12 @@ multi method run( Str $cmd, Bool :$async where *.so ) {
 # Run command and return exitcode only
 # Param Str $command to execute
 # Return Int $exitcode : -1 on error
-multi method run( Str $cmd ) returns Int {
+multi method run( Str:D $cmd ) returns Int {
     my $channel := Net::SSH::Channel.new( :$!sess, :$.host );
 
     return -1 if !self!init_lock ;
+
+	say "[RUN] run command '$cmd'" if self.debug;
 
     if $channel.exec( $cmd ) {
 
@@ -124,8 +134,8 @@ multi method run( Str $cmd ) returns Int {
     return -1;
 }
 
-method exec( Str $cmd, Bool :$stderr is copy = False, Bool :$merge = False ){
-    my $channel := Net::SSH::Channel.new( :$!sess, :$.host );
+method exec( Str $cmd, Bool :$stderr is copy = False, Bool :$merge = False, Bool :$bin ){
+    my $channel := Net::SSH::Channel.new( :$!sess, :$.host, debug => True, :$.bin );
 
     return -1 if !self!init_lock;
 
@@ -134,24 +144,22 @@ method exec( Str $cmd, Bool :$stderr is copy = False, Bool :$merge = False ){
         return NULL;
     }
 
-    my ( $STDOUT, $STDERR ) = $channel.read();
+	say "[EXEC] run command '$cmd'" if self.debug;
 
-    if $STDOUT.defined.not {
-        self!release_lock;
-        note X::SSH::Exec.new( :$.host, :$cmd, :error(self!get_error), :stage('read') );
-        return Nil;
-    }
+    my Promise $promise = $channel.read();
 
-    my int $exitcode = $channel.exitcode( );
+	return Net::SSH::Response.new( :$channel, :$promise, :$.bin );
+
+    my int $exitcode = $channel.exitcode();
 
     self!release_lock;
 
-    if so $merge {
-        $STDOUT.append: $STDERR ;
-        $STDERR = Buf.new;
-    }
+#    if so $merge {
+#        $STDOUT.append: $STDERR ;
+#        $STDERR = Buf.new;
+#    }
 
-    my $response := Net::SSH::Response.new( :$STDERR, :$STDOUT, :$exitcode, :$channel );
+    my $response := Net::SSH::Response.new( :$channel, :$exitcode, :$channel );
 
     return $response;
 }

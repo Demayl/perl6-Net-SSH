@@ -67,9 +67,10 @@ class X::SSH::Exec is X::SSH {
     has Str $.cmd is required;
     has StrInt $.error is required;
     has Str $.stage = 'init';
+	has int $.exitcode = -1;
 
     method message(){
-        "Failed to execute '$.cmd' at stage '$.stage': $.error";
+        "Failed to execute '$.cmd' at stage '$.stage' exitcode '$.exitcode': $.error";
     }
 }
 
